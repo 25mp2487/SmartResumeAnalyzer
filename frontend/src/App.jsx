@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 
 function App() {
-  // Backend message
   const [message, setMessage] = useState("");
-
-  // Selected resume file
   const [selectedFile, setSelectedFile] = useState(null);
-
-  // Upload status
   const [uploadStatus, setUploadStatus] = useState(
     "Waiting for resume upload"
   );
 
-  // Connecting frontend and backend
+  // Backend connection
   useEffect(() => {
     fetch("http://localhost:5000/api/message")
       .then((response) => response.text())
@@ -21,13 +16,38 @@ function App() {
       });
   }, []);
 
-  // Runs when a file is selected
+  // Select file
   const handleFileChange = (event) => {
     const file = event.target.files[0];
 
     if (file) {
       setSelectedFile(file);
       setUploadStatus("Resume selected successfully.");
+    }
+  };
+
+  // Upload file to backend
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      alert("Please select a resume first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("resume", selectedFile);
+
+    try {
+      const response = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      setUploadStatus(data.message);
+    } catch (error) {
+      console.error(error);
+      setUploadStatus("Upload failed.");
     }
   };
 
@@ -76,7 +96,7 @@ function App() {
           minutes.
         </p>
 
-        {/* Upload Resume Button */}
+        {/* Select Resume */}
         <label
           style={{
             backgroundColor: "#2563eb",
@@ -87,7 +107,7 @@ function App() {
             display: "inline-block",
           }}
         >
-          Upload Resume
+          Choose Resume
 
           <input
             type="file"
@@ -96,6 +116,25 @@ function App() {
             style={{ display: "none" }}
           />
         </label>
+
+        {/* Upload Button */}
+        <div style={{ marginTop: "20px" }}>
+          <button
+            onClick={handleUpload}
+            style={{
+              backgroundColor: "#16a34a",
+              color: "white",
+              border: "none",
+              padding: "12px 28px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "16px",
+            }}
+          >
+            Upload Resume
+          </button>
+        </div>
 
         <p
           style={{
@@ -107,7 +146,7 @@ function App() {
           Supported formats: PDF, DOC and DOCX
         </p>
 
-        {/* Resume Details Section */}
+        {/* Resume Details */}
         <div
           style={{
             marginTop: "40px",
@@ -136,7 +175,7 @@ function App() {
           </p>
         </div>
 
-        {/* Backend Connection Section */}
+        {/* Backend Connection */}
         <div
           style={{
             marginTop: "25px",
@@ -147,13 +186,7 @@ function App() {
         >
           <h3>Backend Connection Status</h3>
 
-          <p
-            style={{
-              color: "#38bdf8",
-            }}
-          >
-            {message}
-          </p>
+          <p style={{ color: "#38bdf8" }}>{message}</p>
         </div>
       </div>
     </div>
