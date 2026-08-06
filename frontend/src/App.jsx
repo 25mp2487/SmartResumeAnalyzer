@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -7,12 +8,15 @@ function App() {
     "Waiting for resume upload"
   );
 
-  // Backend connection
+  // Backend connection using Axios
   useEffect(() => {
-    fetch("http://localhost:5000/api/message")
-      .then((response) => response.text())
-      .then((data) => {
-        setMessage(data);
+    axios
+      .get("http://localhost:5000/api/message")
+      .then((response) => {
+        setMessage(response.data);
+      })
+      .catch((error) => {
+        console.error("Error connecting to backend:", error);
       });
   }, []);
 
@@ -26,7 +30,7 @@ function App() {
     }
   };
 
-  // Upload file to backend
+  // Upload file using Axios
   const handleUpload = async () => {
     if (!selectedFile) {
       alert("Please select a resume first.");
@@ -37,14 +41,12 @@ function App() {
     formData.append("resume", selectedFile);
 
     try {
-      const response = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/upload",
+        formData
+      );
 
-      const data = await response.json();
-
-      setUploadStatus(data.message);
+      setUploadStatus(response.data.message);
     } catch (error) {
       console.error(error);
       setUploadStatus("Upload failed.");
