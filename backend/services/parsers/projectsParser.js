@@ -3,52 +3,63 @@ function parseProjects(lines, sections) {
     let projects = [];
 
     const projectStart = sections.projects;
-    const skillsStart = sections.skills;
 
-    if (
-        projectStart === undefined
-    ) {
+    if (projectStart === undefined) {
         return projects;
     }
 
+    // Find where Projects section ends
+    let projectEnd = lines.length;
 
-    // Determine where projects section ends
-    let projectEnd = skillsStart;
+    const possibleEnds = [
+        sections.skills,
+        sections.certificates,
+        sections.achievements,
+        sections.languages
+    ];
 
-    if (projectEnd === undefined) {
-        projectEnd = lines.length;
-    }
+    possibleEnds.forEach(end => {
 
+        if (
+            end !== undefined &&
+            end > projectStart &&
+            end < projectEnd
+        ) {
+            projectEnd = end;
+        }
+
+    });
 
     const projectLines = lines.slice(
         projectStart + 1,
         projectEnd
     );
 
-
     if (projectLines.length === 0) {
         return projects;
     }
 
-
     let currentProject = null;
 
+    projectLines.forEach(line => {
 
-    projectLines.forEach((line) => {
+        line = line.trim();
 
-        // Detect possible project title
-        // Usually short lines without punctuation
+        if (line === "") return;
+
+        // Project title
         if (
-            line.length < 60 &&
-            !line.includes(".") &&
+            line.length < 70 &&
+            !line.endsWith(".") &&
             !line.includes(":")
         ) {
 
-            // Save previous project
             if (currentProject) {
+                currentProject.description =
+                    currentProject.description.trim();
+
                 projects.push(currentProject);
             }
-
 
             currentProject = {
 
@@ -61,7 +72,6 @@ function parseProjects(lines, sections) {
             };
 
         }
-
 
         else {
 
@@ -79,80 +89,81 @@ function parseProjects(lines, sections) {
 
             }
 
-
-            currentProject.description +=
-                line + " ";
-
+            currentProject.description += line + " ";
 
         }
 
     });
 
-
-    // Push last project
     if (currentProject) {
+
+        currentProject.description =
+            currentProject.description.trim();
 
         projects.push(currentProject);
 
     }
 
+    // -------------------------
+    // Technology Detection
+    // -------------------------
 
+    const techPatterns = {
 
-    // Extract technologies
+        "C": /\bC\b/i,
+
+        "Java": /\bJava\b/i,
+
+        "Python": /\bPython\b/i,
+
+        "PHP": /\bPHP\b/i,
+
+        "HTML": /\bHTML\b/i,
+
+        "CSS": /\bCSS\b/i,
+
+        "JavaScript": /\bJavaScript\b/i,
+
+        "React": /\bReact\b/i,
+
+        "Node.js": /\bNode\.?js\b/i,
+
+        "Express": /\bExpress\b/i,
+
+        "MongoDB": /\bMongoDB\b/i,
+
+        "MySQL": /\bMySQL\b/i,
+
+        "SQL": /\bSQL\b/i,
+
+        "Flutter": /\bFlutter\b/i,
+
+        "Firebase": /\bFirebase\b/i,
+
+        "AWS": /\bAWS\b/i
+
+    };
+
     projects.forEach(project => {
 
-        const techList = [
+        for (const tech in techPatterns) {
 
-            "HTML",
-            "CSS",
-            "JavaScript",
-            "React",
-            "Node.js",
-            "Express",
-            "MongoDB",
-            "MySQL",
-            "SQL",
-            "PHP",
-            "Python",
-            "Java",
-            "C",
-            "Flutter",
-            "Firebase",
-            "AWS"
-
-        ];
-
-
-        techList.forEach(tech => {
-
-            if (
-                project.description
-                .toLowerCase()
-                .includes(tech.toLowerCase())
-            ) {
+            if (techPatterns[tech].test(project.description)) {
 
                 project.technologies.push(tech);
 
             }
 
-        });
+        }
 
-
-        // Remove duplicate technologies
         project.technologies =
             [...new Set(project.technologies)];
 
-
-        project.description =
-            project.description.trim();
-
     });
-
 
     return projects;
 
 }
-
 
 module.exports = {
     parseProjects

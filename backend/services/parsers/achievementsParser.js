@@ -8,11 +8,8 @@ function parseAchievements(lines, sections) {
         return achievements;
     }
 
-
-    // Find ending section
-
+    // Find end of Achievements section
     let achievementEnd = lines.length;
-
 
     const possibleEnds = [
         sections.projects,
@@ -21,7 +18,6 @@ function parseAchievements(lines, sections) {
         sections.languages
     ];
 
-
     possibleEnds.forEach(end => {
 
         if (
@@ -29,110 +25,64 @@ function parseAchievements(lines, sections) {
             end > achievementStart &&
             end < achievementEnd
         ) {
-
             achievementEnd = end;
-
         }
 
     });
-
-
 
     const achievementLines = lines.slice(
         achievementStart + 1,
         achievementEnd
     );
 
-
-    if (achievementLines.length === 0) {
-        return achievements;
-    }
-
-
-
-    let currentAchievement = null;
-
-
+    let current = "";
 
     achievementLines.forEach(line => {
 
+        line = line.trim();
 
-        // Short line = possible achievement title
+        if (line === "") return;
 
+        // If previous line wasn't finished, continue it
+        if (current !== "") {
+
+            current += " " + line;
+
+        } else {
+
+            current = line;
+
+        }
+
+        // Sentence completed
         if (
-            line.length < 80 &&
-            !line.endsWith(".")
+            line.endsWith(".") ||
+            line.endsWith("!") ||
+            line.endsWith("?")
         ) {
 
+            achievements.push({
+                description: current.trim()
+            });
 
-            if (currentAchievement) {
-
-                achievements.push(currentAchievement);
-
-            }
-
-
-            currentAchievement = {
-
-                title: line,
-
-                description: ""
-
-            };
-
+            current = "";
 
         }
-
-
-        else {
-
-
-            if (!currentAchievement) {
-
-                currentAchievement = {
-
-                    title: "Achievement",
-
-                    description: ""
-
-                };
-
-            }
-
-
-            currentAchievement.description +=
-                line + " ";
-
-        }
-
 
     });
 
+    // Last achievement (if no period at end)
+    if (current !== "") {
 
-
-    // Add last achievement
-
-    if (currentAchievement) {
-
-        achievements.push(currentAchievement);
+        achievements.push({
+            description: current.trim()
+        });
 
     }
-
-
-
-    achievements.forEach(item => {
-
-        item.description =
-            item.description.trim();
-
-    });
-
-
 
     return achievements;
 
 }
-
 
 module.exports = {
     parseAchievements

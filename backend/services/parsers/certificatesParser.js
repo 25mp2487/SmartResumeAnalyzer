@@ -2,142 +2,97 @@ function parseCertificates(lines, sections) {
 
     let certificates = [];
 
-    const certificateStart = sections.certificates;
-    const achievementStart = sections.achievements;
-    const projectsStart = sections.projects;
-    const skillsStart = sections.skills;
+    const start = sections.certificates;
 
-
-    if (certificateStart === undefined) {
+    if (start === undefined) {
         return certificates;
     }
 
-
-    // Find where certificates section ends
-    let certificateEnd = lines.length;
-
+    // Find where Certificates section ends
+    let end = lines.length;
 
     const possibleEnds = [
-        achievementStart,
-        projectsStart,
-        skillsStart
+        sections.achievements,
+        sections.projects,
+        sections.skills,
+        sections.languages,
+        sections.experience
     ];
 
-
-    possibleEnds.forEach(end => {
+    possibleEnds.forEach(section => {
 
         if (
-            end !== undefined &&
-            end > certificateStart &&
-            end < certificateEnd
+            section !== undefined &&
+            section > start &&
+            section < end
         ) {
-            certificateEnd = end;
+            end = section;
         }
 
     });
 
-
-
-    const certificateLines = lines.slice(
-        certificateStart + 1,
-        certificateEnd
-    );
-
-
-    if (certificateLines.length === 0) {
-        return certificates;
-    }
-
-
+    const certificateLines = lines.slice(start + 1, end);
 
     let currentCertificate = null;
 
-
-
     certificateLines.forEach(line => {
 
+        line = line.trim();
+
+        if (line === "") return;
 
         // Detect certificate title
-        // Usually short lines
-        if (
-            line.length < 100 &&
+        const isTitle =
             !line.endsWith(".") &&
-            !line.includes("Successfully") &&
-            !line.includes("Completed") &&
-            !line.includes("Gained")
-        ) {
+            !/^(Completed|Successfully|Worked|Developed|Designed|Implemented|Gained|Knowledge|knowledge|The|This|Service|service|Data|data|Classification|classification)/i.test(line);
 
+        if (isTitle) {
 
+            // Save previous certificate
             if (currentCertificate) {
+
+                currentCertificate.description =
+                    currentCertificate.description.trim();
 
                 certificates.push(currentCertificate);
 
             }
 
-
             currentCertificate = {
-
                 title: line,
-
                 description: ""
-
             };
 
-
-        }
-
-
-        else {
-
+        } else {
 
             if (!currentCertificate) {
 
                 currentCertificate = {
-
                     title: "Certificate",
-
                     description: ""
-
                 };
 
             }
 
-
-            currentCertificate.description +=
-                line + " ";
+            currentCertificate.description += line + " ";
 
         }
 
-
     });
 
-
-
-    // Add last certificate
-
+    // Push last certificate
     if (currentCertificate) {
+
+        currentCertificate.description =
+            currentCertificate.description.trim();
 
         certificates.push(currentCertificate);
 
     }
 
-
-
-    // Clean descriptions
-
-    certificates.forEach(cert => {
-
-        cert.description =
-            cert.description.trim();
-
-    });
-
-
-
     return certificates;
 
 }
-
 
 module.exports = {
     parseCertificates

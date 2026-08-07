@@ -2,20 +2,14 @@ function parseLanguages(lines, sections) {
 
     let languages = [];
 
-
     const languageStart = sections.languages;
-
 
     if (languageStart === undefined) {
         return languages;
     }
 
-
-
-    // Find ending section
-
+    // Find where Languages section ends
     let languageEnd = lines.length;
-
 
     const possibleEnds = [
         sections.projects,
@@ -24,8 +18,6 @@ function parseLanguages(lines, sections) {
         sections.achievements
     ];
 
-
-
     possibleEnds.forEach(end => {
 
         if (
@@ -33,79 +25,66 @@ function parseLanguages(lines, sections) {
             end > languageStart &&
             end < languageEnd
         ) {
-
             languageEnd = end;
-
         }
 
     });
-
-
 
     const languageLines = lines.slice(
         languageStart + 1,
         languageEnd
     );
 
-
-
     languageLines.forEach(line => {
 
+        if (!line || line.trim() === "") return;
 
-        if (!line) return;
-
-
-
-        // Remove bullets and extra spaces
-
+        // Remove bullets
         line = line
             .replace(/^[-•*]\s*/, "")
+            .replace(/\.$/, "") // Remove trailing period
             .trim();
 
+        let language = {
+            name: "",
+            level: ""
+        };
 
-
-        // Handle level
-
+        // English - Fluent
         if (line.includes("-")) {
 
             const parts = line.split("-");
 
-
-            languages.push({
-
-                name: parts[0].trim(),
-
-                level: parts[1].trim()
-
-            });
-
+            language.name = parts[0].trim();
+            language.level = parts.slice(1).join("-").trim();
 
         }
 
+        // English : Fluent
+        else if (line.includes(":")) {
+
+            const parts = line.split(":");
+
+            language.name = parts[0].trim();
+            language.level = parts.slice(1).join(":").trim();
+
+        }
+
+        // Only language name
         else {
 
-
-            languages.push({
-
-                name: line,
-
-                level: ""
-
-            });
-
+            language.name = line;
+            language.level = "";
 
         }
 
+        languages.push(language);
 
     });
-
-
 
     return languages;
 
 }
-
-
 
 module.exports = {
     parseLanguages
