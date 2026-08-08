@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use("/users", userRoutes);
-app.use("/", resumeRoutes);
+app.use("/api/resume", resumeRoutes);
 
 // Test API
 app.get("/api/message", (req, res) => {

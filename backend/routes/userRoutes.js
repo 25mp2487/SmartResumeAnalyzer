@@ -1,63 +1,191 @@
 const express = require("express");
 const router = express.Router();
+
 const db = require("../db");
+
+// =====================================
+// REGISTER USER
+// POST /users/
+// =====================================
 
 router.post("/", (req, res) => {
 
-     const {
+    const {
         full_name,
         email,
         password,
-        phone,
-        created_at
+        phone
     } = req.body;
 
+    // Check required fields
+    if (!full_name || !email || !password) {
 
+        return res.status(400).json({
+            message: "Full name, email and password are required."
+        });
 
+    }
 
- const sql = `INSERT INTO Users(full_name,email,password,phone,created_at)
-  VALUES (anu,anu@gmail.com,anu123,9038633687,12/12/2025)`;
+    // Check whether email already exists
+    const checkSQL = `
+        SELECT user_id
+        FROM Users
+        WHERE email = ?
+    `;
 
- db.run(
+    db.get(checkSQL, [email], (err, user) => {
 
-        sql,
+        if (err) {
 
-        [
-            full_name,
-            email,
-            password,
-            phone,
-            created_at
-        ],
+            console.error(err);
 
-        function(err){
-
-            if(err){
-
-                res.status(500).json({
-
-                    error : err.message
-
-                });
-
-            }
-
-            else{
-
-                res.status(200).json({
-
-                    message :
-                    "User inserted successfully!",
-
-                    user_id : this.lastID
-
-                });
-
-            }
+            return res.status(500).json({
+                message: "Database error.",
+                error: err.message
+            });
 
         }
 
+        // Email already registered
+        if (user) {
+
+            return res.status(409).json({
+                message: "Email already registered."
+            });
+
+        }
+
+        // Insert new user
+        const sql = `
+            INSERT INTO Users
+            (
+                full_name,
+                email,
+                password,
+                phone,
+                created_at
+            )
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        const created_at = new Date().toISOString();
+
+        db.run(
+            sql,
+            [
+                full_name,
+                email,
+                password,
+                phone || "",
+                created_at
+            ],
+            function (err) {
+
+                if (err) {
+
+                    console.error(err);
+
+                    return res.status(500).json({
+                        message: "User insertion failed.",
+                        error: err.message
+                    });
+
+                }
+
+                return res.status(201).json({
+
+                    message: "User registered successfully!",
+
+                    user: {
+                        user_id: this.lastID,
+                        full_name: full_name,
+                        email: email,
+                        phone: phone || ""
+                    }
+
+                });
+
+            }
+        );
+
+    });
+
+});
+
+
+// =====================================
+// LOGIN USER
+// POST /users/login
+// =====================================
+
+router.post("/login", (req, res) => {
+
+    const {
+        email,
+        password
+    } = req.body;
+
+    // Check fields
+    if (!email || !password) {
+
+        return res.status(400).json({
+            message: "Email and password are required."
+        });
+
+    }
+
+    const sql = `
+        SELECT
+            user_id,
+            full_name,
+            email,
+            phone
+        FROM Users
+        WHERE email = ?
+        AND password = ?
+    `;
+
+    db.get(
+        sql,
+        [
+            email,
+            password
+        ],
+        (err, user) => {
+
+            if (err) {
+
+                console.error(err);
+
+                return res.status(500).json({
+                    message: "Database error.",
+                    error: err.message
+                });
+
+            }
+
+            // Invalid login
+            if (!user) {
+
+                return res.status(401).json({
+                    message: "Invalid email or password."
+                });
+
+            }
+
+            // Login successful
+            return res.status(200).json({
+
+                message: "Login successful.",
+
+                user: user
+
+            });
+
+        }
     );
 
 });
+
+
 module.exports = router;
