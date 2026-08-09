@@ -10,6 +10,8 @@ const UploadResume = () => {
 
   const navigate = useNavigate();
 
+  // ================= FILE SELECTION =================
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
@@ -19,6 +21,8 @@ const UploadResume = () => {
     setMessage("");
     setError("");
   };
+
+  // ================= UPLOAD RESUME =================
 
   const handleUpload = async () => {
     setMessage("");
@@ -61,8 +65,9 @@ const UploadResume = () => {
 
       const resumeId = response.data.resume_id;
 
+      // Go to Template Selection
       setTimeout(() => {
-        navigate(`/portfolio/${resumeId}`);
+        navigate(`/portfolio/${resumeId}/templates`);
       }, 1000);
     } catch (err) {
       console.error(err);
@@ -81,8 +86,10 @@ const UploadResume = () => {
     }
   };
 
+  // ================= UI =================
+
   return (
-    <div className="min-h-screen bg-[#08070d] text-white flex items-center justify-center px-6 py-10 relative overflow-hidden">
+    <div className="min-h-screen bg-[#080611] text-white relative overflow-hidden flex items-center justify-center px-6 py-20">
 
       {/* Background glow */}
 
@@ -109,6 +116,7 @@ const UploadResume = () => {
           <h1 className="text-4xl md:text-5xl font-bold">
 
             Upload your
+
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-500">
               {" "}resume
             </span>

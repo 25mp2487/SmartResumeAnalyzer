@@ -1,13 +1,44 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ArrowLeft, Save, Eye } from "lucide-react";
+
+import TemplateSelection from "../components/portfolio/TemplateSelection";
+import ContentEditor from "../components/portfolio/ContentEditor";
+import PhotoUploader from "../components/portfolio/PhotoUploader";
+import PortfolioPreview from "../components/portfolio/PortfolioPreview";
+import SectionOrganizer from "../components/portfolio/SectionOrganizer";
+import ThemeSelector from "../components/portfolio/ThemeSelector";
 
 function Portfolio() {
   const { resumeId } = useParams();
+  const navigate = useNavigate();
 
   const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Selected portfolio template
+  const [selectedTemplate, setSelectedTemplate] =
+    useState("minimal");
+
+  // Portfolio appearance
+  const [theme, setTheme] = useState("light");
+
+  // Profile photo
+  const [photo, setPhoto] = useState(null);
+
+  // Portfolio sections
+  const [sections, setSections] = useState([
+    "about",
+    "education",
+    "skills",
+    "projects",
+    "certificates",
+    "achievements",
+    "languages",
+  ]);
+
+  // Fetch resume
   useEffect(() => {
     const fetchResume = async () => {
       try {
@@ -18,9 +49,11 @@ function Portfolio() {
         console.log("Resume data:", response.data);
 
         setResume(response.data.resume);
-
       } catch (error) {
-        console.error("Error fetching resume:", error);
+        console.error(
+          "Error fetching resume:",
+          error
+        );
       } finally {
         setLoading(false);
       }
@@ -29,352 +62,259 @@ function Portfolio() {
     fetchResume();
   }, [resumeId]);
 
+  // Update resume
+  const updateResume = (updatedResume) => {
+    setResume(updatedResume);
+  };
+
+  // Update photo
+  const handlePhotoChange = (newPhoto) => {
+    setPhoto(newPhoto);
+  };
+
+  // Save portfolio
+  const handleSave = () => {
+    const portfolioData = {
+      resume,
+      selectedTemplate,
+      theme,
+      photo,
+      sections,
+    };
+
+    console.log(
+      "Portfolio saved:",
+      portfolioData
+    );
+
+    alert("Portfolio changes saved successfully!");
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <p className="text-xl text-cyan-400">
-          Loading portfolio...
-        </p>
+      <div className="min-h-screen bg-[#080611] text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+
+          <p className="text-gray-400">
+            Loading portfolio...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!resume) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <p className="text-xl text-red-400">
-          Portfolio not found.
-        </p>
+      <div className="min-h-screen bg-[#080611] text-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-3">
+            Portfolio Not Found
+          </h2>
+
+          <p className="text-gray-500 mb-6">
+            We couldn't load the selected resume.
+          </p>
+
+          <button
+            onClick={() => navigate("/")}
+            className="px-5 py-3 rounded-xl bg-purple-500 hover:bg-purple-600 transition"
+          >
+            Go Home
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[#080611] text-white">
 
-      <section className="min-h-screen flex items-center justify-center px-6">
+      {/* ================= NAVBAR ================= */}
 
-        <div className="text-center">
+      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#080611]/90 backdrop-blur-xl">
 
-          <p className="text-cyan-400 text-lg mb-4">
-            Hello, I'm
-          </p>
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
 
-          <h1 className="text-5xl md:text-7xl font-bold">
-            {resume.personal?.name}
-          </h1>
+          {/* Logo */}
+          <div className="flex items-center gap-3">
 
-          <p className="text-slate-400 mt-6">
-            {resume.personal?.email}
-          </p>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold">
+              SR
+            </div>
 
-          <p className="text-slate-400 mt-2">
-            {resume.personal?.phone}
-          </p>
+            <div>
+              <h1 className="font-bold">
+                Portfolio Studio
+              </h1>
+
+              <p className="text-xs text-gray-500">
+                SmartResumeAnalyzer
+              </p>
+            </div>
+
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+
+            <button
+              onClick={() =>
+                navigate(
+                  `/portfolio/${resumeId}`
+                )
+              }
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 hover:bg-white/5 transition text-sm"
+            >
+              <Eye size={16} />
+              View Portfolio
+            </button>
+
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 transition text-sm font-medium"
+            >
+              <Save size={16} />
+              Save
+            </button>
+
+          </div>
 
         </div>
+
+      </nav>
+
+
+      {/* ================= PAGE HEADER ================= */}
+
+      <section className="max-w-[1600px] mx-auto px-6 pt-8 pb-6">
+
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition mb-5"
+        >
+          <ArrowLeft size={16} />
+          Back
+        </button>
+
+        <h2 className="text-3xl md:text-4xl font-bold">
+          Customize your portfolio
+        </h2>
+
+        <p className="text-gray-500 mt-2">
+          Choose a design, edit your information,
+          upload your photo and arrange your sections.
+        </p>
 
       </section>
 
 
-      {/* Education */}
+      {/* ================= TEMPLATE SELECTION ================= */}
 
-      {resume.education?.length > 0 && (
+      <section className="max-w-[1600px] mx-auto px-6 pb-8">
 
-        <section className="py-24 px-6 bg-slate-900">
+        <TemplateSelection
+          selectedTemplate={selectedTemplate}
+          setSelectedTemplate={
+            setSelectedTemplate
+          }
+        />
 
-          <div className="max-w-6xl mx-auto">
+      </section>
 
-            <h2 className="text-4xl font-bold mb-10">
-              Education
-            </h2>
 
-            <div className="grid md:grid-cols-2 gap-6">
+      {/* ================= EDITOR ================= */}
 
-              {resume.education.map((item, index) => (
+      <main className="max-w-[1600px] mx-auto px-6 pb-12">
 
-                <div
-                  key={index}
-                  className="p-6 rounded-xl border border-slate-700 bg-slate-950"
-                >
+        <div className="grid xl:grid-cols-[420px_1fr] gap-8">
 
-                  <h3 className="text-xl font-bold">
-                    {item.course}
-                  </h3>
+          {/* ================= LEFT PANEL ================= */}
 
-                  <p className="text-slate-400 mt-2">
-                    {item.institute}
+          <aside className="space-y-6">
+
+            <ContentEditor
+              resume={resume}
+              setResume={updateResume}
+            />
+
+            <PhotoUploader
+              photo={photo}
+              setPhoto={handlePhotoChange}
+            />
+
+            <SectionOrganizer
+              sections={sections}
+              setSections={setSections}
+            />
+
+            <ThemeSelector
+              theme={theme}
+              setTheme={setTheme}
+            />
+
+            {/* Save Button */}
+
+            <button
+              onClick={handleSave}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition font-semibold"
+            >
+              Save Portfolio
+            </button>
+
+          </aside>
+
+
+          {/* ================= RIGHT PREVIEW ================= */}
+
+          <section className="min-w-0">
+
+            <div className="sticky top-24">
+
+              <div className="flex items-center justify-between mb-4">
+
+                <div>
+                  <p className="text-xs text-purple-400 uppercase tracking-wider">
+                    Live Preview
                   </p>
 
-                  {item.score && (
-                    <p className="text-cyan-400 mt-4">
-                      {item.score.label}: {item.score.value}
-                    </p>
-                  )}
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-        </section>
-
-      )}
-
-
-      {/* Skills */}
-
-      {resume.skills && (
-
-        <section className="py-24 px-6 bg-slate-950">
-
-          <div className="max-w-6xl mx-auto">
-
-            <h2 className="text-4xl font-bold mb-10">
-              Skills
-            </h2>
-
-            <div className="grid md:grid-cols-2 gap-6">
-
-              {Object.entries(resume.skills).map(
-                ([category, values]) => {
-
-                  if (!values || values.length === 0) {
-                    return null;
-                  }
-
-                  return (
-                    <div
-                      key={category}
-                      className="p-6 rounded-xl border border-slate-800 bg-slate-900"
-                    >
-
-                      <h3 className="text-xl font-semibold mb-5 capitalize">
-                        {category.replace(
-                          /([A-Z])/g,
-                          " $1"
-                        )}
-                      </h3>
-
-                      <div className="flex flex-wrap gap-3">
-
-                        {values.map((skill, index) => (
-
-                          <span
-                            key={index}
-                            className="px-4 py-2 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800"
-                          >
-                            {skill}
-                          </span>
-
-                        ))}
-
-                      </div>
-
-                    </div>
-                  );
-                }
-              )}
-
-            </div>
-
-          </div>
-
-        </section>
-
-      )}
-
-
-      {/* Projects */}
-
-      {resume.projects?.length > 0 && (
-
-        <section className="py-24 px-6 bg-slate-900">
-
-          <div className="max-w-6xl mx-auto">
-
-            <h2 className="text-4xl font-bold mb-10">
-              Projects
-            </h2>
-
-            <div className="space-y-6">
-
-              {resume.projects.map((project, index) => (
-
-                <div
-                  key={index}
-                  className="p-8 rounded-xl border border-slate-700 bg-slate-950"
-                >
-
-                  <h3 className="text-2xl font-bold">
-                    {project.title}
+                  <h3 className="text-lg font-semibold">
+                    Your Portfolio
                   </h3>
-
-                  <p className="text-slate-400 mt-5 leading-7">
-                    {project.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-3 mt-6">
-
-                    {project.technologies?.map(
-                      (tech, techIndex) => (
-
-                        <span
-                          key={techIndex}
-                          className="px-4 py-2 rounded-full bg-cyan-950 text-cyan-300"
-                        >
-                          {tech}
-                        </span>
-
-                      )
-                    )}
-
-                  </div>
-
                 </div>
 
-              ))}
+                <span className="text-xs text-gray-600">
+                  {selectedTemplate}
+                </span>
+
+              </div>
+
+              <PortfolioPreview
+                resume={resume}
+                photo={photo}
+                sections={sections}
+                template={selectedTemplate}
+                theme={theme}
+              />
 
             </div>
 
-          </div>
+          </section>
 
-        </section>
+        </div>
 
-      )}
-
-
-      {/* Certificates */}
-
-      {resume.certificates?.length > 0 && (
-
-        <section className="py-24 px-6 bg-slate-950">
-
-          <div className="max-w-6xl mx-auto">
-
-            <h2 className="text-4xl font-bold mb-10">
-              Certificates
-            </h2>
-
-            <div className="grid md:grid-cols-2 gap-6">
-
-              {resume.certificates.map(
-                (certificate, index) => (
-
-                  <div
-                    key={index}
-                    className="p-6 rounded-xl border border-slate-800 bg-slate-900"
-                  >
-
-                    <h3 className="text-xl font-bold">
-                      {certificate.title}
-                    </h3>
-
-                    <p className="text-slate-400 mt-4 leading-7">
-                      {certificate.description}
-                    </p>
-
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          </div>
-
-        </section>
-
-      )}
+      </main>
 
 
-      {/* Achievements */}
+      {/* ================= FOOTER ================= */}
 
-      {resume.achievements?.length > 0 && (
+      <footer className="border-t border-white/10 py-6 text-center">
 
-        <section className="py-24 px-6 bg-slate-900">
+        <p className="text-xs text-gray-600">
+          SmartResumeAnalyzer • Portfolio Studio • 2026
+        </p>
 
-          <div className="max-w-6xl mx-auto">
-
-            <h2 className="text-4xl font-bold mb-10">
-              Achievements
-            </h2>
-
-            <div className="space-y-4">
-
-              {resume.achievements.map(
-                (achievement, index) => (
-
-                  <div
-                    key={index}
-                    className="p-6 rounded-xl border border-slate-700 bg-slate-950"
-                  >
-
-                    <p className="text-slate-300 leading-7">
-                      {achievement.description}
-                    </p>
-
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          </div>
-
-        </section>
-
-      )}
-
-
-      {/* Languages */}
-
-      {resume.languages?.length > 0 && (
-
-        <section className="py-24 px-6 bg-slate-950">
-
-          <div className="max-w-6xl mx-auto">
-
-            <h2 className="text-4xl font-bold mb-10">
-              Languages
-            </h2>
-
-            <div className="flex flex-wrap gap-5">
-
-              {resume.languages.map(
-                (language, index) => (
-
-                  <div
-                    key={index}
-                    className="px-6 py-4 rounded-xl border border-slate-800 bg-slate-900"
-                  >
-
-                    <p className="font-semibold">
-                      {language.name}
-                    </p>
-
-                    {language.level && (
-                      <p className="text-slate-500 text-sm mt-1">
-                        {language.level}
-                      </p>
-                    )}
-
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          </div>
-
-        </section>
-
-      )}
+      </footer>
 
     </div>
   );
