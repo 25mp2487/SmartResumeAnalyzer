@@ -2,7 +2,7 @@ import React from "react";
 import {
   Mail,
   Phone,
-  ArrowUpRight,
+  MapPin,
 } from "lucide-react";
 
 function MinimalTemplate({
@@ -14,510 +14,574 @@ function MinimalTemplate({
   const personal = resume?.personal || {};
   const isDark = theme === "dark";
 
-  // --------------------------------------------------
+  // =========================================================
   // COLORS
-  // --------------------------------------------------
+  // =========================================================
 
   const page = isDark
-    ? "bg-[#101a26] text-[#edf4fa]"
-    : "bg-[#f4f8fc] text-[#243447]";
+    ? "bg-[#171614] text-[#f1eee7]"
+    : "bg-[#f8f6f1] text-[#242321]";
 
-  const card = isDark
-    ? "bg-[#172536] border-[#2b4054]"
-    : "bg-white border-[#dce7f1]";
-
-  const softCard = isDark
-    ? "bg-[#1d3042]"
-    : "bg-[#e8f1f8]";
-
-  const muted = isDark
-    ? "text-[#aebdca]"
-    : "text-[#66788a]";
+  const secondary = isDark
+    ? "text-[#aaa59b]"
+    : "text-[#77736b]";
 
   const faint = isDark
-    ? "text-[#718596]"
-    : "text-[#91a0ad]";
+    ? "text-[#706c64]"
+    : "text-[#a09b91]";
 
-  const border = isDark
-    ? "border-[#2b4054]"
-    : "border-[#dce7f1]";
+  const line = isDark
+    ? "border-[#393731]"
+    : "border-[#d8d4cb]";
 
   const accent = isDark
-    ? "text-[#8bb8df]"
-    : "text-[#4f7ea8]";
+    ? "text-[#d7b98a]"
+    : "text-[#856b43]";
 
-  const accentBg = isDark
-    ? "bg-[#1e3449]"
-    : "bg-[#e5eff8]";
+  const accentLine = isDark
+    ? "bg-[#d7b98a]"
+    : "bg-[#856b43]";
 
-  // --------------------------------------------------
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  const toArray = (value) => {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  };
+
+  const education = toArray(resume?.education);
+  const projects = toArray(resume?.projects);
+  const certificates = toArray(resume?.certificates);
+  const achievements = toArray(resume?.achievements);
+  const languages = toArray(resume?.languages);
+
+  const skills =
+    resume?.skills && !Array.isArray(resume.skills)
+      ? resume.skills
+      : {
+          technical: toArray(resume?.skills),
+        };
+
+  // =========================================================
   // SECTION HEADING
-  // --------------------------------------------------
+  // =========================================================
 
-  const Heading = ({
-    number,
-    title,
-  }) => (
-    <div className="mb-10">
-      <div className="flex items-center gap-4">
-        <span
-          className={`text-xs font-mono ${faint}`}
-        >
-          {number}
-        </span>
+  const SectionHeading = ({ number, title }) => (
+    <div className="flex items-baseline gap-4 mb-8">
+      <span
+        className={`text-xs tracking-[0.25em] font-medium ${accent}`}
+      >
+        {number}
+      </span>
 
-        <span
-          className={`w-10 h-px ${
-            isDark
-              ? "bg-[#3c5266]"
-              : "bg-[#c8d8e5]"
-          }`}
-        />
-
-        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
-          {title}
-        </h2>
-      </div>
+      <h2 className="font-serif text-2xl md:text-3xl tracking-tight">
+        {title}
+      </h2>
     </div>
   );
 
-  // --------------------------------------------------
+  // =========================================================
   // PHOTO
-  // --------------------------------------------------
+  // =========================================================
 
   const renderPhoto = () => {
     if (photo) {
       return (
-        <img
-          src={photo}
-          alt={personal.name || "Profile"}
-          className={`w-36 h-36 md:w-44 md:h-44 object-cover rounded-2xl border ${border} shadow-lg`}
-        />
+        <div className="relative">
+          <img
+            src={photo}
+            alt={personal.name || "Profile"}
+            className="
+              w-36
+              h-48
+              md:w-44
+              md:h-56
+              object-cover
+              grayscale
+              rounded-sm
+            "
+          />
+
+          <div
+            className={`
+              absolute
+              -bottom-3
+              -right-3
+              w-full
+              h-full
+              border
+              ${line}
+              -z-10
+            `}
+          />
+        </div>
       );
     }
 
     return (
       <div
-        className={`w-36 h-36 md:w-44 md:h-44 rounded-2xl border ${border} ${softCard} flex items-center justify-center`}
+        className={`
+          w-36
+          h-48
+          md:w-44
+          md:h-56
+          border
+          ${line}
+          flex
+          items-center
+          justify-center
+          rounded-sm
+        `}
       >
         <span
-          className={`text-xs uppercase tracking-widest ${faint}`}
+          className={`text-[10px] tracking-[0.3em] uppercase ${faint}`}
         >
-          Add Photo
+          Photo
         </span>
       </div>
     );
   };
 
-  // --------------------------------------------------
-  // RENDER SECTIONS
-  // --------------------------------------------------
+  // =========================================================
+  // ABOUT
+  // =========================================================
 
-  const renderSection = (section) => {
-    switch (section) {
-      // ================================================
-      // ABOUT
-      // ================================================
+  const renderAbout = () => (
+    <section
+      id="about"
+      className={`py-16 border-b ${line} scroll-mt-24`}
+    >
+      <SectionHeading number="01" title="Profile" />
 
-      case "about":
-        return (
-          <section
-            id="about"
-            key="about"
-            className="py-20 scroll-mt-24"
-          >
-            <Heading
-              number="01"
-              title="About"
-            />
+      <div className="max-w-3xl">
+        <p
+          className={`
+            font-serif
+            text-xl
+            md:text-2xl
+            leading-relaxed
+            ${secondary}
+          `}
+        >
+          {resume.about ||
+            "A motivated individual with an interest in learning, developing meaningful solutions and continuously growing through new experiences."}
+        </p>
+      </div>
+    </section>
+  );
 
+  // =========================================================
+  // EDUCATION
+  // =========================================================
+
+  const renderEducation = () => {
+    if (!education.length) return null;
+
+    return (
+      <section
+        id="education"
+        className={`py-16 border-b ${line} scroll-mt-24`}
+      >
+        <SectionHeading number="02" title="Education" />
+
+        <div className="space-y-8">
+          {education.map((item, index) => (
             <div
-              className={`rounded-2xl border ${border} ${card} p-8 md:p-10`}
+              key={index}
+              className="grid md:grid-cols-[150px_1fr] gap-6"
             >
-              <p
-                className={`text-lg md:text-xl leading-8 max-w-4xl ${muted}`}
-              >
-                I am a motivated professional with
-                an interest in technology, continuous
-                learning and building meaningful
-                solutions.
-              </p>
-            </div>
-          </section>
-        );
+              <div>
+                <span
+                  className={`text-xs tracking-widest ${faint}`}
+                >
+                  {item.year || "—"}
+                </span>
+              </div>
 
-      // ================================================
-      // EDUCATION
-      // ================================================
+              <div>
+                <h3 className="font-serif text-xl">
+                  {item.degree ||
+                    item.course ||
+                    "Degree"}
+                </h3>
 
-      case "education":
-        if (!resume.education?.length) {
-          return null;
-        }
+                <p className={`mt-2 text-sm ${secondary}`}>
+                  {item.institution ||
+                    item.institute ||
+                    "Institution"}
+                </p>
 
-        return (
-          <section
-            id="education"
-            key="education"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="02"
-              title="Education"
-            />
-
-            <div className="grid md:grid-cols-2 gap-5">
-              {resume.education.map(
-                (item, index) => (
-                  <div
-                    key={index}
-                    className={`p-7 rounded-2xl border ${border} ${card}`}
+                {item.score && (
+                  <p
+                    className={`mt-2 text-xs ${accent}`}
                   >
-                    <span
-                      className={`text-xs font-mono ${faint}`}
-                    >
-                      {String(
-                        index + 1
-                      ).padStart(2, "0")}
-                    </span>
-
-                    <h3 className="text-xl font-semibold mt-5">
-                      {item.course}
-                    </h3>
-
-                    <p
-                      className={`mt-2 ${muted}`}
-                    >
-                      {item.institute}
-                    </p>
-
-                    {item.score && (
-                      <div
-                        className={`inline-block mt-5 px-4 py-2 rounded-lg ${accentBg} text-sm ${accent}`}
-                      >
-                        {item.score.label}:{" "}
-                        {item.score.value}
-                      </div>
-                    )}
-                  </div>
-                )
-              )}
+                    {item.score.label}:{" "}
+                    {item.score.value}
+                  </p>
+                )}
+              </div>
             </div>
-          </section>
-        );
+          ))}
+        </div>
+      </section>
+    );
+  };
 
-      // ================================================
-      // SKILLS
-      // ================================================
+  // =========================================================
+  // SKILLS
+  // =========================================================
 
-      case "skills":
-        if (!resume.skills) {
-          return null;
-        }
+  const renderSkills = () => {
+    if (!resume.skills) return null;
 
-        return (
-          <section
-            id="skills"
-            key="skills"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="03"
-              title="Skills"
-            />
+    const skillEntries = Array.isArray(resume.skills)
+      ? [["Skills", resume.skills]]
+      : Object.entries(resume.skills);
 
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(
-                resume.skills
-              ).map(([category, values]) => {
-                if (!values?.length) {
-                  return null;
-                }
+    return (
+      <section
+        id="skills"
+        className={`py-16 border-b ${line} scroll-mt-24`}
+      >
+        <SectionHeading number="03" title="Expertise" />
 
-                return values.map(
-                  (skill, index) => (
+        <div className="space-y-8">
+          {skillEntries.map(([category, values]) => {
+            if (!values?.length) return null;
+
+            return (
+              <div
+                key={category}
+                className="grid md:grid-cols-[150px_1fr] gap-6"
+              >
+                <span
+                  className={`text-xs uppercase tracking-[0.18em] ${faint}`}
+                >
+                  {category.replace(
+                    /([A-Z])/g,
+                    " $1"
+                  )}
+                </span>
+
+                <div className="flex flex-wrap gap-x-6 gap-y-3">
+                  {values.map((skill, index) => (
                     <span
-                      key={`${category}-${index}`}
-                      className={`px-4 py-2.5 rounded-lg border ${border} ${softCard} text-sm ${accent}`}
+                      key={index}
+                      className={`text-sm ${secondary}`}
                     >
                       {skill}
                     </span>
-                  )
-                );
-              })}
-            </div>
-          </section>
-        );
-
-      // ================================================
-      // PROJECTS
-      // ================================================
-
-      case "projects":
-        if (!resume.projects?.length) {
-          return null;
-        }
-
-        return (
-          <section
-            id="projects"
-            key="projects"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="04"
-              title="Projects"
-            />
-
-            <div className="space-y-5">
-              {resume.projects.map(
-                (project, index) => (
-                  <article
-                    key={index}
-                    className={`group p-8 rounded-2xl border ${border} ${card} hover:-translate-y-1 transition-all duration-300`}
-                  >
-                    <div className="flex items-start justify-between gap-5">
-                      <div>
-                        <span
-                          className={`text-xs font-mono ${faint}`}
-                        >
-                          PROJECT{" "}
-                          {String(
-                            index + 1
-                          ).padStart(2, "0")}
-                        </span>
-
-                        <h3 className="text-2xl font-semibold mt-4">
-                          {project.title}
-                        </h3>
-                      </div>
-
-                      <ArrowUpRight
-                        size={20}
-                        className={`${faint} group-hover:translate-x-1 group-hover:-translate-y-1 transition`}
-                      />
-                    </div>
-
-                    <p
-                      className={`mt-5 leading-7 max-w-4xl ${muted}`}
-                    >
-                      {project.description}
-                    </p>
-
-                    {project.technologies
-                      ?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-6">
-                        {project.technologies.map(
-                          (
-                            tech,
-                            techIndex
-                          ) => (
-                            <span
-                              key={
-                                techIndex
-                              }
-                              className={`px-3 py-1.5 rounded-md text-xs ${softCard} ${accent}`}
-                            >
-                              {tech}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    )}
-                  </article>
-                )
-              )}
-            </div>
-          </section>
-        );
-
-      // ================================================
-      // CERTIFICATES
-      // ================================================
-
-      case "certificates":
-        if (!resume.certificates?.length) {
-          return null;
-        }
-
-        return (
-          <section
-            id="certificates"
-            key="certificates"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="05"
-              title="Certificates"
-            />
-
-            <div className="grid md:grid-cols-2 gap-5">
-              {resume.certificates.map(
-                (certificate, index) => (
-                  <div
-                    key={index}
-                    className={`p-7 rounded-2xl border ${border} ${card}`}
-                  >
-                    <span
-                      className={`text-xs font-mono ${faint}`}
-                    >
-                      CERTIFICATE{" "}
-                      {String(
-                        index + 1
-                      ).padStart(2, "0")}
-                    </span>
-
-                    <h3 className="text-xl font-semibold mt-5">
-                      {certificate.title}
-                    </h3>
-
-                    <p
-                      className={`mt-4 leading-7 ${muted}`}
-                    >
-                      {certificate.description}
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
-          </section>
-        );
-
-      // ================================================
-      // ACHIEVEMENTS
-      // ================================================
-
-      case "achievements":
-        if (!resume.achievements?.length) {
-          return null;
-        }
-
-        return (
-          <section
-            id="achievements"
-            key="achievements"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="06"
-              title="Achievements"
-            />
-
-            <div className="space-y-4 max-w-4xl">
-              {resume.achievements.map(
-                (achievement, index) => (
-                  <div
-                    key={index}
-                    className={`flex gap-5 p-6 rounded-xl border ${border} ${card}`}
-                  >
-                    <span
-                      className={`text-xs font-mono ${faint}`}
-                    >
-                      {String(
-                        index + 1
-                      ).padStart(2, "0")}
-                    </span>
-
-                    <p
-                      className={`leading-7 ${muted}`}
-                    >
-                      {
-                        achievement.description
-                      }
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
-          </section>
-        );
-
-      // ================================================
-      // LANGUAGES
-      // ================================================
-
-      case "languages":
-        if (!resume.languages?.length) {
-          return null;
-        }
-
-        return (
-          <section
-            id="languages"
-            key="languages"
-            className={`py-20 border-t ${border} scroll-mt-24`}
-          >
-            <Heading
-              number="07"
-              title="Languages"
-            />
-
-            <div className="flex flex-wrap gap-4">
-              {resume.languages.map(
-                (language, index) => (
-                  <div
-                    key={index}
-                    className={`px-5 py-3 rounded-xl border ${border} ${card}`}
-                  >
-                    <span className="font-medium">
-                      {language.name}
-                    </span>
-
-                    {language.level && (
-                      <span
-                        className={`ml-2 text-xs ${faint}`}
-                      >
-                        {language.level}
-                      </span>
-                    )}
-                  </div>
-                )
-              )}
-            </div>
-          </section>
-        );
-
-      default:
-        return null;
-    }
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
   };
 
-  // --------------------------------------------------
+  // =========================================================
+  // PROJECTS
+  // =========================================================
+
+  const renderProjects = () => {
+    if (!projects.length) return null;
+
+    return (
+      <section
+        id="projects"
+        className={`py-16 border-b ${line} scroll-mt-24`}
+      >
+        <SectionHeading number="04" title="Selected Work" />
+
+        <div className="space-y-12">
+          {projects.map((project, index) => (
+            <article
+              key={index}
+              className="grid md:grid-cols-[55px_1fr] gap-5"
+            >
+              <div>
+                <span
+                  className={`font-serif text-lg ${accent}`}
+                >
+                  0{index + 1}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="font-serif text-2xl">
+                  {project.title ||
+                    "Untitled Project"}
+                </h3>
+
+                <p
+                  className={`
+                    mt-4
+                    max-w-3xl
+                    text-sm
+                    leading-7
+                    ${secondary}
+                  `}
+                >
+                  {project.description}
+                </p>
+
+                {project.technologies?.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mt-5">
+                    {project.technologies.map(
+                      (tech, techIndex) => (
+                        <span
+                          key={techIndex}
+                          className={`
+                            text-[10px]
+                            uppercase
+                            tracking-widest
+                            ${accent}
+                          `}
+                        >
+                          {tech}
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // =========================================================
+  // CERTIFICATES
+  // =========================================================
+
+  const renderCertificates = () => {
+    if (!certificates.length) return null;
+
+    return (
+      <section
+        id="certificates"
+        className={`py-16 border-b ${line} scroll-mt-24`}
+      >
+        <SectionHeading number="05" title="Certificates" />
+
+        <div className="space-y-6">
+          {certificates.map((certificate, index) => (
+            <div
+              key={index}
+              className="grid md:grid-cols-[150px_1fr] gap-6"
+            >
+              <span
+                className={`text-xs ${faint}`}
+              >
+                {certificate.year || "—"}
+              </span>
+
+              <div>
+                <h3 className="font-serif text-lg">
+                  {certificate.name ||
+                    certificate.title ||
+                    "Certificate"}
+                </h3>
+
+                {(certificate.issuer ||
+                  certificate.description) && (
+                  <p
+                    className={`mt-2 text-sm ${secondary}`}
+                  >
+                    {certificate.issuer ||
+                      certificate.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // =========================================================
+  // ACHIEVEMENTS
+  // =========================================================
+
+  const renderAchievements = () => {
+    if (!achievements.length) return null;
+
+    return (
+      <section
+        id="achievements"
+        className={`py-16 border-b ${line} scroll-mt-24`}
+      >
+        <SectionHeading number="06" title="Achievements" />
+
+        <div className="max-w-3xl space-y-5">
+          {achievements.map((achievement, index) => (
+            <div
+              key={index}
+              className="flex gap-5"
+            >
+              <span
+                className={`mt-1 w-2 h-2 rounded-full ${accentLine}`}
+              />
+
+              <p
+                className={`text-sm leading-7 ${secondary}`}
+              >
+                {typeof achievement === "string"
+                  ? achievement
+                  : achievement.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // =========================================================
+  // LANGUAGES
+  // =========================================================
+
+  const renderLanguages = () => {
+    if (!languages.length) return null;
+
+    return (
+      <section
+        id="languages"
+        className={`py-16 scroll-mt-24`}
+      >
+        <SectionHeading number="07" title="Languages" />
+
+        <div className="flex flex-wrap gap-x-10 gap-y-4">
+          {languages.map((language, index) => {
+            const name =
+              typeof language === "string"
+                ? language
+                : language.name;
+
+            const level =
+              typeof language === "string"
+                ? ""
+                : language.level;
+
+            return (
+              <div key={index}>
+                <span className="font-serif text-lg">
+                  {name}
+                </span>
+
+                {level && (
+                  <span
+                    className={`ml-3 text-xs ${faint}`}
+                  >
+                    {level}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
+  // =========================================================
+  // NAVIGATION
+  // =========================================================
+
+  const sectionNames = {
+    about: "Profile",
+    education: "Education",
+    skills: "Expertise",
+    projects: "Work",
+    certificates: "Certificates",
+    achievements: "Achievements",
+    languages: "Languages",
+  };
+
+  // =========================================================
   // MAIN
-  // --------------------------------------------------
+  // =========================================================
 
   return (
     <div
-      className={`min-h-screen ${page} overflow-hidden`}
+      className={`
+        min-h-screen
+        ${page}
+        font-sans
+        selection:bg-[#cdbb9b]/30
+      `}
     >
-      {/* ============================================
-          NAVBAR
-      ============================================ */}
+      {/* =====================================================
+          NAVIGATION
+      ===================================================== */}
 
       <nav
-        className={`sticky top-0 z-50 ${
-          isDark
-            ? "bg-[#101a26]/90"
-            : "bg-[#f4f8fc]/90"
-        } backdrop-blur-xl border-b ${border}`}
+        className={`
+          border-b
+          ${line}
+          sticky
+          top-0
+          z-50
+          backdrop-blur-md
+          ${
+            isDark
+              ? "bg-[#171614]/90"
+              : "bg-[#f8f6f1]/90"
+          }
+        `}
       >
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div
+          className="
+            max-w-6xl
+            mx-auto
+            px-6
+            md:px-10
+            py-4
+            flex
+            items-center
+            justify-between
+          "
+        >
           <a
             href="#top"
-            className="font-semibold text-lg whitespace-nowrap"
+            className="font-serif text-lg"
           >
-            {personal.name ||
-              "Portfolio"}
+            {personal.name || "Portfolio"}
           </a>
 
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-7">
             {sections.map((section) => (
               <a
                 key={section}
                 href={`#${section}`}
-                className={`text-xs capitalize ${muted} hover:${accent} transition`}
+                className={`
+                  text-[10px]
+                  uppercase
+                  tracking-[0.15em]
+                  ${faint}
+                  hover:${accent}
+                  transition
+                `}
               >
-                {section}
+                {sectionNames[section] ||
+                  section}
               </a>
             ))}
           </div>
@@ -530,98 +594,210 @@ function MinimalTemplate({
         </div>
       </nav>
 
-      {/* ============================================
+      {/* =====================================================
           HERO
-      ============================================ */}
+      ===================================================== */}
 
       <header
         id="top"
-        className="max-w-6xl mx-auto px-6 md:px-12 py-24 md:py-32"
+        className="
+          max-w-6xl
+          mx-auto
+          px-6
+          md:px-10
+          pt-20
+          md:pt-28
+          pb-20
+        "
       >
-        <div className="grid md:grid-cols-[1fr_auto] gap-12 items-center">
+        <div
+          className="
+            grid
+            md:grid-cols-[auto_1fr]
+            gap-12
+            md:gap-16
+            items-center
+          "
+        >
+          {/* PHOTO LEFT */}
+
+          <div className="flex justify-center md:justify-start">
+            {renderPhoto()}
+          </div>
+
+          {/* INFORMATION RIGHT */}
+
           <div>
             <p
-              className={`text-sm font-medium ${accent}`}
+              className={`
+                text-[10px]
+                uppercase
+                tracking-[0.3em]
+                ${accent}
+                mb-5
+              `}
             >
-              PERSONAL PORTFOLIO
+              Curriculum Vitae
             </p>
 
             <h1
               className="
+                font-serif
                 text-5xl
                 sm:text-6xl
                 md:text-7xl
-                font-bold
+                lg:text-8xl
+                leading-[0.9]
                 tracking-tight
-                leading-none
-                mt-5
-                whitespace-nowrap
               "
             >
               {personal.name ||
                 "Your Name"}
             </h1>
 
-            <p
-              className={`text-lg md:text-xl mt-6 max-w-2xl ${muted}`}
-            >
-              A simple collection of my
-              skills, experiences, projects
-              and achievements.
-            </p>
+            <div
+              className={`
+                mt-7
+                w-16
+                h-px
+                ${accentLine}
+              `}
+            />
 
             <div
-              className={`flex flex-wrap gap-5 mt-7 text-sm ${muted}`}
+              className={`
+                flex
+                flex-wrap
+                gap-x-6
+                gap-y-3
+                mt-7
+                text-xs
+                ${secondary}
+              `}
             >
               {personal.email && (
                 <span className="flex items-center gap-2">
-                  <Mail size={15} />
+                  <Mail size={13} />
                   {personal.email}
                 </span>
               )}
 
               {personal.phone && (
                 <span className="flex items-center gap-2">
-                  <Phone size={15} />
+                  <Phone size={13} />
                   {personal.phone}
                 </span>
               )}
-            </div>
-          </div>
 
-          <div className="flex justify-center md:justify-end">
-            {renderPhoto()}
+              {personal.location && (
+                <span className="flex items-center gap-2">
+                  <MapPin size={13} />
+                  {personal.location}
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-5 mt-6">
+              {personal.linkedin && (
+                <a
+                  href={personal.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`text-xs ${faint} hover:${accent} transition`}
+                >
+                  <Linkedin size={16} />
+                </a>
+              )}
+
+              {personal.github && (
+                <a
+                  href={personal.github}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`text-xs ${faint} hover:${accent} transition`}
+                >
+                  <Github size={16} />
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* ============================================
+      {/* =====================================================
           CONTENT
-      ============================================ */}
+      ===================================================== */}
 
-      <main className="max-w-6xl mx-auto px-6 md:px-12 pb-20">
-        {sections.map(renderSection)}
+      <main
+        className="
+          max-w-5xl
+          mx-auto
+          px-6
+          md:px-10
+          pb-20
+        "
+      >
+        {sections.map((section) => {
+          switch (section) {
+            case "about":
+              return renderAbout();
+
+            case "education":
+              return renderEducation();
+
+            case "skills":
+              return renderSkills();
+
+            case "projects":
+              return renderProjects();
+
+            case "certificates":
+              return renderCertificates();
+
+            case "achievements":
+              return renderAchievements();
+
+            case "languages":
+              return renderLanguages();
+
+            default:
+              return null;
+          }
+        })}
       </main>
 
-      {/* ============================================
+      {/* =====================================================
           FOOTER
-      ============================================ */}
+      ===================================================== */}
 
       <footer
-        className={`border-t ${border} py-10`}
+        className={`
+          border-t
+          ${line}
+          py-8
+        `}
       >
-        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
-          <p
-            className={`text-sm ${muted}`}
-          >
-            {personal.name ||
-              "Portfolio"}
+        <div
+          className="
+            max-w-6xl
+            mx-auto
+            px-6
+            md:px-10
+            flex
+            flex-col
+            md:flex-row
+            justify-between
+            gap-3
+          "
+        >
+          <p className="font-serif text-sm">
+            {personal.name || "Portfolio"}
           </p>
 
           <p
-            className={`text-xs ${faint}`}
+            className={`text-[10px] uppercase tracking-[0.2em] ${faint}`}
           >
-            Created with SmartResumeAnalyzer
+            Personal Portfolio
           </p>
         </div>
       </footer>

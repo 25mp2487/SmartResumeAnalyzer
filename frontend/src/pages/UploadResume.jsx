@@ -10,8 +10,6 @@ const UploadResume = () => {
 
   const navigate = useNavigate();
 
-  // ================= FILE SELECTION =================
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
@@ -21,8 +19,6 @@ const UploadResume = () => {
     setMessage("");
     setError("");
   };
-
-  // ================= UPLOAD RESUME =================
 
   const handleUpload = async () => {
     setMessage("");
@@ -37,19 +33,23 @@ const UploadResume = () => {
 
     if (!user) {
       setError("Please login before uploading your resume.");
-      navigate("/auth");
+      navigate("/login");
       return;
     }
 
     try {
       setLoading(true);
 
+      // ==============================
+      // 1. Upload Resume
+      // ==============================
+
       const formData = new FormData();
 
       formData.append("resume", selectedFile);
       formData.append("user_id", user.user_id);
 
-      const response = await axios.post(
+      const resumeResponse = await axios.post(
         "http://localhost:5000/api/resume/upload",
         formData,
         {
@@ -59,18 +59,92 @@ const UploadResume = () => {
         }
       );
 
-      console.log("Upload response:", response.data);
+      console.log("Resume upload response:", resumeResponse.data);
 
-      setMessage("Resume uploaded successfully!");
+      const resumeId = resumeResponse.data.resume_id;
 
-      const resumeId = response.data.resume_id;
+      if (!resumeId) {
+        setError("Resume uploaded, but resume ID was not returned.");
+        return;
+      }
 
-      // Go to Template Selection
+      // ==============================
+      // 2. Create Portfolio
+      // ==============================
+
+      const portfolioResponse = await axios.post(
+        "http://localhost:5000/api/portfolio",
+        {
+          resume_id: resumeId,
+          template_name: "minimal",
+          theme: "light",
+          about: "",
+          education: [],
+          skills: [],
+          projects: [],
+          certificates: [],
+          achievements: [],
+          languages: [],
+          section_order: [
+            "about",
+            "education",
+            "skills",
+            "projects",
+            "certificates",
+            "achievements",
+            "languages",
+          ],
+        }
+      );
+
+      console.log(
+        "Portfolio creation response:",
+        portfolioResponse.data
+      );
+
+      const portfolioId =
+        portfolioResponse.data.portfolio_id;
+
+      if (!portfolioId) {
+        setError(
+          "Portfolio was created, but portfolio ID was not returned."
+        );
+        return;
+      }
+
+      // ==============================
+      // 3. Save Portfolio ID
+      // ==============================
+
+      localStorage.setItem(
+        "portfolio_id",
+        portfolioId
+      );
+
+      localStorage.setItem(
+        "resume_id",
+        resumeId
+      );
+
+      console.log("Saved portfolio ID:", portfolioId);
+      console.log("Saved resume ID:", resumeId);
+
+      setMessage(
+        "Resume uploaded and portfolio created successfully!"
+      );
+
+      // ==============================
+      // 4. Go to Editor
+      // ==============================
+
       setTimeout(() => {
-        navigate(`/portfolio/${resumeId}/templates`);
+        navigate(
+          `/portfolio/create/${resumeId}`
+        );
       }, 1000);
+
     } catch (err) {
-      console.error(err);
+      console.error("Upload error:", err);
 
       if (err.response) {
         setError(
@@ -79,17 +153,17 @@ const UploadResume = () => {
             "Resume upload failed."
         );
       } else {
-        setError("Cannot connect to the backend server.");
+        setError(
+          "Cannot connect to the backend server."
+        );
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= UI =================
-
   return (
-    <div className="min-h-screen bg-[#080611] text-white relative overflow-hidden flex items-center justify-center px-6 py-20">
+    <div className="min-h-screen bg-[#080611] text-white flex items-center justify-center px-6 py-20 relative overflow-hidden">
 
       {/* Background glow */}
 
@@ -147,8 +221,6 @@ const UploadResume = () => {
             >
 
               <div className="border-2 border-dashed border-purple-500/30 hover:border-purple-400/60 rounded-2xl p-10 text-center bg-purple-500/[0.03] hover:bg-purple-500/[0.06] transition">
-
-                {/* Icon */}
 
                 <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-violet-600/20 border border-purple-500/20 flex items-center justify-center text-4xl mb-6">
 

@@ -1,4 +1,5 @@
 import React from "react";
+
 import MinimalTemplate from "./templates/MinimalTemplate";
 import DarkTemplate from "./templates/DarkTemplate";
 import TechTemplate from "./templates/TechTemplate";
@@ -30,10 +31,14 @@ function PortfolioPreview({
       return <TechTemplate {...props} />;
 
     case "professional":
-      return <ProfessionalTemplate {...props} />;
+      return (
+        <ProfessionalTemplate {...props} />
+      );
 
     case "aesthetic":
-      return <AestheticTemplate {...props} />;
+      return (
+        <AestheticTemplate {...props} />
+      );
 
     default:
       return <MinimalTemplate {...props} />;

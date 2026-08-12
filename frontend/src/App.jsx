@@ -1,5 +1,9 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -12,52 +16,77 @@ function App() {
   return (
     <Routes>
 
-      {/* ================= HOME ================= */}
+      {/* ==================================================
+          HOME
+      ================================================== */}
+
       <Route
         path="/"
         element={<Home />}
       />
 
-      {/* ================= AUTH ================= */}
+      {/* ==================================================
+          AUTHENTICATION
+      ================================================== */}
+
       <Route
         path="/auth"
         element={<Auth />}
       />
 
-      {/* Keep /login working too */}
       <Route
         path="/login"
         element={<Auth />}
       />
 
-      {/* ================= UPLOAD ================= */}
+      {/* ==================================================
+          RESUME UPLOAD
+      ================================================== */}
+
       <Route
         path="/upload"
         element={<UploadResume />}
       />
 
-      {/* ================= PORTFOLIO ================= */}
-      <Route
-        path="/portfolio/:resumeId"
-        element={<Portfolio />}
-      />
+      {/* ==================================================
+          TEMPLATE SELECTION / PORTFOLIO CREATION
+      ================================================== */}
 
-      {/* ================= TEMPLATE SELECTION ================= */}
       <Route
-        path="/portfolio/:resumeId/templates"
+        path="/portfolio/create/:resumeId"
         element={<TemplateSelection />}
       />
 
-      {/* ================= PORTFOLIO EDITOR ================= */}
+      {/* ==================================================
+          PORTFOLIO EDITOR
+      ================================================== */}
+
       <Route
-        path="/portfolio/:resumeId/edit"
+        path="/portfolio/:portfolioId/edit"
         element={<PortfolioEditor />}
       />
 
-      {/* ================= UNKNOWN URL ================= */}
+      {/* ==================================================
+          SAVED PORTFOLIO VIEW
+      ================================================== */}
+
+      <Route
+        path="/portfolio/:portfolioId"
+        element={<Portfolio />}
+      />
+
+      {/* ==================================================
+          FALLBACK
+      ================================================== */}
+
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
       />
 
     </Routes>
