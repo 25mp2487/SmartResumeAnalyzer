@@ -1,104 +1,171 @@
 function parsePersonal(lines, sections) {
+    const text = lines.join("\n");
 
-    // --------------------------
+    // ==========================================
     // EMAIL
-    // --------------------------
+    // ==========================================
 
     const emailRegex =
         /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
-    let email = "";
+    const emailMatch = text.match(emailRegex);
 
-    const emailLine = lines.find(line => emailRegex.test(line));
+    const email = emailMatch ? emailMatch[0] : "";
 
-    if (emailLine) {
-        email = emailLine.match(emailRegex)[0];
-    }
-
-    // --------------------------
+    // ==========================================
     // PHONE
-    // --------------------------
+    // ==========================================
 
-    const phoneRegex = /\b\d{10}\b/;
+    const phoneRegex =
+        /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?)?\d{3,5}[\s.-]?\d{3,5}/g;
 
     let phone = "";
 
-    if (emailLine) {
+    const phoneCandidates = text.match(phoneRegex) || [];
 
-        const phoneMatch = emailLine.match(phoneRegex);
+    for (const candidate of phoneCandidates) {
+        const digits = candidate.replace(/\D/g, "");
 
-        if (phoneMatch) {
-            phone = phoneMatch[0];
+        if (digits.length >= 10 && digits.length <= 13) {
+            phone = candidate.trim();
+            break;
         }
-
     }
 
-    // --------------------------
+    // ==========================================
+    // LINKEDIN
+    // ==========================================
+
+    const linkedinRegex =
+        /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/[A-Za-z0-9_./-]+/i;
+
+    const linkedinMatch = text.match(linkedinRegex);
+
+    const linkedin = linkedinMatch
+        ? linkedinMatch[0]
+        : "";
+
+    // ==========================================
+    // GITHUB
+    // ==========================================
+
+    const githubRegex =
+        /(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9_.-]+/i;
+
+    const githubMatch = text.match(githubRegex);
+
+    const github = githubMatch
+        ? githubMatch[0]
+        : "";
+
+    // ==========================================
     // NAME
-    // --------------------------
+    // ==========================================
 
     let name = "";
 
-    const educationIndex = sections.education ?? lines.length;
+    const firstLines = lines.slice(
+        0,
+        Math.min(lines.length, 15)
+    );
 
-    for (let i = 0; i < educationIndex; i++) {
+    for (const line of firstLines) {
+        const cleaned = line.trim();
 
-        const line = lines[i];
+        if (!cleaned) continue;
 
-        if (/\d/.test(line)) continue;
+        if (emailRegex.test(cleaned)) continue;
 
-        if (line.includes("@")) continue;
+        if (/linkedin\.com/i.test(cleaned)) continue;
+
+        if (/github\.com/i.test(cleaned)) continue;
+
+        if (/\d/.test(cleaned)) continue;
 
         if (
-            line.includes(",") ||
-            line.includes("P.O") ||
-            line.includes("Road") ||
-            line.includes("Street")
-        ) continue;
+            /^(resume|curriculum vitae|cv|portfolio)$/i.test(
+                cleaned
+            )
+        ) {
+            continue;
+        }
 
-        if (line.length < 3) continue;
+        if (
+            /^(education|skills|projects|experience|profile|summary|about)$/i.test(
+                cleaned
+            )
+        ) {
+            continue;
+        }
 
-        name = line;
+        if (cleaned.length < 3 || cleaned.length > 60) {
+            continue;
+        }
 
-        break;
+        // A likely person's name usually contains 1-5 words
+        const words = cleaned.split(/\s+/);
 
+        if (words.length > 5) continue;
+
+        if (
+            words.every((word) =>
+                /^[A-Za-z.'-]+$/.test(word)
+            )
+        ) {
+            name = cleaned;
+            break;
+        }
     }
 
-    // --------------------------
+    // ==========================================
     // ADDRESS
-    // --------------------------
+    // ==========================================
 
     let address = "";
 
-    if (name && emailLine) {
+    const addressKeywords = [
+        "street",
+        "road",
+        "lane",
+        "avenue",
+        "nagar",
+        "po",
+        "p.o",
+        "district",
+        "kerala",
+        "india",
+        "pin",
+        "pincode",
+    ];
 
-        const nameIndex = lines.indexOf(name);
-        const contactIndex = lines.indexOf(emailLine);
+    const addressLines = [];
 
-        if (contactIndex > nameIndex) {
+    for (const line of lines.slice(0, 15)) {
+        const lower = line.toLowerCase();
 
-            address = lines
-                .slice(nameIndex + 1, contactIndex)
-                .join(" ");
-
+        if (
+            addressKeywords.some((keyword) =>
+                lower.includes(keyword)
+            )
+        ) {
+            addressLines.push(line);
         }
+    }
 
+    if (addressLines.length > 0) {
+        address = addressLines.join(", ");
     }
 
     return {
-
         name,
-
         email,
-
         phone,
-
-        address
-
+        address,
+        github,
+        linkedin,
     };
-
 }
 
 module.exports = {
-    parsePersonal
+    parsePersonal,
 };

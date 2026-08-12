@@ -17,18 +17,21 @@ function getSectionRange(lines, sections, sectionName) {
     return lines.slice(start + 1, end);
 }
 
-function parseProjects(lines, sections) {
+function parseExperience(lines, sections) {
     const sectionLines = getSectionRange(
         lines,
         sections,
-        "projects"
+        "experience"
     );
 
     if (sectionLines.length === 0) {
         return [];
     }
 
-    const projects = [];
+    const experiences = [];
+
+    const dateRegex =
+        /\b(19|20)\d{2}\b\s*(?:[-–]\s*(?:\d{2,4}|present|current))?/i;
 
     let current = null;
 
@@ -39,43 +42,38 @@ function parseProjects(lines, sections) {
 
         if (!cleaned) continue;
 
-        // Project titles are usually short
-        // and don't end with a normal sentence.
-        const looksLikeTitle =
-            cleaned.length <= 100 &&
-            !/[.!?]$/.test(cleaned);
+        const dateMatch =
+            cleaned.match(dateRegex);
 
-        if (looksLikeTitle && !current) {
+        // A short line without a date is often
+        // a job title or company name.
+        if (!current) {
             current = {
-                title: cleaned,
+                role: cleaned,
+                company: "",
+                duration: dateMatch
+                    ? dateMatch[0]
+                    : "",
                 description: "",
             };
 
             continue;
         }
 
-        if (looksLikeTitle && current) {
-            // If this line looks like another project title
-            if (
-                current.description.length > 30
-            ) {
-                projects.push(current);
-
-                current = {
-                    title: cleaned,
-                    description: "",
-                };
-
-                continue;
-            }
+        if (
+            !current.company &&
+            !dateMatch &&
+            cleaned.length < 100
+        ) {
+            current.company = cleaned;
+            continue;
         }
 
-        if (!current) {
-            current = {
-                title: cleaned,
-                description: "",
-            };
-
+        if (
+            dateMatch &&
+            !current.duration
+        ) {
+            current.duration = dateMatch[0];
             continue;
         }
 
@@ -85,12 +83,12 @@ function parseProjects(lines, sections) {
     }
 
     if (current) {
-        projects.push(current);
+        experiences.push(current);
     }
 
-    return projects;
+    return experiences;
 }
 
 module.exports = {
-    parseProjects,
+    parseExperience,
 };

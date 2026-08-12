@@ -1,91 +1,70 @@
-function parseLanguages(lines, sections) {
+function getSectionRange(lines, sections, sectionName) {
+    const start = sections[sectionName];
 
-    let languages = [];
-
-    const languageStart = sections.languages;
-
-    if (languageStart === undefined) {
-        return languages;
+    if (start === undefined) {
+        return [];
     }
 
-    // Find where Languages section ends
-    let languageEnd = lines.length;
+    const nextSections = Object.values(sections)
+        .filter((index) => index > start)
+        .sort((a, b) => a - b);
 
-    const possibleEnds = [
-        sections.projects,
-        sections.skills,
-        sections.certificates,
-        sections.achievements
-    ];
+    const end =
+        nextSections.length > 0
+            ? nextSections[0]
+            : lines.length;
 
-    possibleEnds.forEach(end => {
+    return lines.slice(start + 1, end);
+}
 
-        if (
-            end !== undefined &&
-            end > languageStart &&
-            end < languageEnd
-        ) {
-            languageEnd = end;
-        }
-
-    });
-
-    const languageLines = lines.slice(
-        languageStart + 1,
-        languageEnd
+function parseLanguages(lines, sections) {
+    const sectionLines = getSectionRange(
+        lines,
+        sections,
+        "languages"
     );
 
-    languageLines.forEach(line => {
+    if (sectionLines.length === 0) {
+        return [];
+    }
 
-        if (!line || line.trim() === "") return;
+    const languages = [];
 
-        // Remove bullets
-        line = line
-            .replace(/^[-•*]\s*/, "")
-            .replace(/\.$/, "") // Remove trailing period
+    for (const line of sectionLines) {
+        const cleaned = line
+            .replace(/^[•▪◾◆►*-]\s*/, "")
             .trim();
 
-        let language = {
-            name: "",
-            level: ""
-        };
+        if (!cleaned) continue;
 
-        // English - Fluent
-        if (line.includes("-")) {
+        const parts = cleaned
+            .split(/[,|;/•]/)
+            .map((item) =>
+                item
+                    .replace(
+                        /\s*\((native|fluent|basic|intermediate|advanced)\)/gi,
+                        ""
+                    )
+                    .trim()
+            )
+            .filter(Boolean);
 
-            const parts = line.split("-");
-
-            language.name = parts[0].trim();
-            language.level = parts.slice(1).join("-").trim();
-
+        for (const language of parts) {
+            if (
+                !languages.some(
+                    (existing) =>
+                        existing.toLowerCase() ===
+                        language.toLowerCase()
+                )
+            ) {
+                languages.push(language);
+            }
         }
-
-        // English : Fluent
-        else if (line.includes(":")) {
-
-            const parts = line.split(":");
-
-            language.name = parts[0].trim();
-            language.level = parts.slice(1).join(":").trim();
-
-        }
-
-        // Only language name
-        else {
-
-            language.name = line;
-            language.level = "";
-
-        }
-
-        languages.push(language);
-
-    });
+    }
 
     return languages;
-
 }
 
 module.exports = {
-    parseLanguages
+    parseLanguages,
 };

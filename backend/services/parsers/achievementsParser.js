@@ -1,89 +1,42 @@
-function parseAchievements(lines, sections) {
+function getSectionRange(lines, sections, sectionName) {
+    const start = sections[sectionName];
 
-    let achievements = [];
-
-    const achievementStart = sections.achievements;
-
-    if (achievementStart === undefined) {
-        return achievements;
+    if (start === undefined) {
+        return [];
     }
 
-    // Find end of Achievements section
-    let achievementEnd = lines.length;
+    const nextSections = Object.values(sections)
+        .filter((index) => index > start)
+        .sort((a, b) => a - b);
 
-    const possibleEnds = [
-        sections.projects,
-        sections.skills,
-        sections.certificates,
-        sections.languages
-    ];
+    const end =
+        nextSections.length > 0
+            ? nextSections[0]
+            : lines.length;
 
-    possibleEnds.forEach(end => {
+    return lines.slice(start + 1, end);
+}
 
-        if (
-            end !== undefined &&
-            end > achievementStart &&
-            end < achievementEnd
-        ) {
-            achievementEnd = end;
-        }
-
-    });
-
-    const achievementLines = lines.slice(
-        achievementStart + 1,
-        achievementEnd
+function parseAchievements(lines, sections) {
+    const sectionLines = getSectionRange(
+        lines,
+        sections,
+        "achievements"
     );
 
-    let current = "";
-
-    achievementLines.forEach(line => {
-
-        line = line.trim();
-
-        if (line === "") return;
-
-        // If previous line wasn't finished, continue it
-        if (current !== "") {
-
-            current += " " + line;
-
-        } else {
-
-            current = line;
-
-        }
-
-        // Sentence completed
-        if (
-            line.endsWith(".") ||
-            line.endsWith("!") ||
-            line.endsWith("?")
-        ) {
-
-            achievements.push({
-                description: current.trim()
-            });
-
-            current = "";
-
-        }
-
-    });
-
-    // Last achievement (if no period at end)
-    if (current !== "") {
-
-        achievements.push({
-            description: current.trim()
-        });
-
+    if (sectionLines.length === 0) {
+        return [];
     }
 
-    return achievements;
-
+    return sectionLines
+        .map((line) =>
+            line
+                .replace(/^[•▪◾◆►*-]\s*/, "")
+                .trim()
+        )
+        .filter((line) => line.length > 0);
 }
 
 module.exports = {
-    parseAchievements
+    parseAchievements,
 };

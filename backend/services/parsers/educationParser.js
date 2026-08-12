@@ -1,109 +1,117 @@
-function parseEducation(lines, sections) {
+function getSectionRange(lines, sections, sectionName) {
+    const start = sections[sectionName];
 
-    let education = [];
-
-    const educationStart = sections.education;
-    const certificateStart = sections.certificates;
-
-    if (
-        educationStart === undefined ||
-        certificateStart === undefined
-    ) {
-        return education;
+    if (start === undefined) {
+        return [];
     }
 
-    const educationLines = lines.slice(
-        educationStart + 1,
-        certificateStart
+    const sectionNames = Object.values(sections)
+        .filter((index) => index > start)
+        .sort((a, b) => a - b);
+
+    const end =
+        sectionNames.length > 0
+            ? sectionNames[0]
+            : lines.length;
+
+    return lines.slice(start + 1, end);
+}
+
+function parseEducation(lines, sections) {
+    const sectionLines = getSectionRange(
+        lines,
+        sections,
+        "education"
     );
 
-    let i = 0;
+    if (sectionLines.length === 0) {
+        return [];
+    }
 
-    while (i < educationLines.length) {
+    const education = [];
 
-        const institute = educationLines[i] || "";
-        const course = educationLines[i + 1] || "";
+    const degreeKeywords = [
+        "mca",
+        "mba",
+        "m.tech",
+        "mtech",
+        "msc",
+        "m.sc",
+        "ma ",
+        "master",
+        "bca",
+        "b.tech",
+        "btech",
+        "bsc",
+        "b.sc",
+        "ba ",
+        "bachelor",
+        "phd",
+        "ph.d",
+        "diploma",
+        "higher secondary",
+        "plus two",
+        "12th",
+        "10th",
+        "sslc",
+    ];
 
-        if (!institute || !course) break;
+    const yearRegex =
+        /\b(19|20)\d{2}\b(?:\s*[-–]\s*(?:\d{2,4}|present|current))?/i;
 
-        const educationObj = {
-            institute,
-            course
-        };
+    let current = null;
 
-        const nextLine = educationLines[i + 2];
+    for (const line of sectionLines) {
+        const cleaned = line.trim();
 
-        if (nextLine) {
+        if (!cleaned) continue;
 
-            // Grade
-            if (/^(A|A\+|B|B\+|C|C\+|D|F)$/i.test(nextLine)) {
+        const lower = cleaned.toLowerCase();
 
-                educationObj.score = {
-                    label: "Grade",
-                    value: nextLine
-                };
+        const yearMatch = cleaned.match(yearRegex);
 
-                i += 3;
+        const looksLikeDegree =
+            degreeKeywords.some((keyword) =>
+                lower.includes(keyword)
+            );
+
+        if (looksLikeDegree) {
+            if (current) {
+                education.push(current);
             }
 
-            // CGPA
-            else if (/CGPA/i.test(nextLine)) {
+            current = {
+                degree: cleaned,
+                institution: "",
+                year: yearMatch
+                    ? yearMatch[0]
+                    : "",
+            };
 
-                educationObj.score = {
-                    label: "CGPA",
-                    value: nextLine.replace(/CGPA\s*:?\s*/i, "").trim()
-                };
-
-                i += 3;
-            }
-
-            // GPA
-            else if (/GPA/i.test(nextLine)) {
-
-                educationObj.score = {
-                    label: "GPA",
-                    value: nextLine.replace(/GPA\s*:?\s*/i, "").trim()
-                };
-
-                i += 3;
-            }
-
-            // Percentage
-            else if (
-                /Percentage/i.test(nextLine) ||
-                /\d+%/.test(nextLine)
-            ) {
-
-                educationObj.score = {
-                    label: "Percentage",
-                    value: nextLine.replace(/Percentage\s*:?\s*/i, "").trim()
-                };
-
-                i += 3;
-            }
-
-            // No score (currently studying or not mentioned)
-            else {
-
-                i += 2;
-
-            }
-
-        }
-        else {
-
-            i += 2;
-
+            continue;
         }
 
-        education.push(educationObj);
+        if (!current) {
+            continue;
+        }
 
+        if (yearMatch && !current.year) {
+            current.year = yearMatch[0];
+            continue;
+        }
+
+        if (!current.institution) {
+            current.institution = cleaned;
+        }
+    }
+
+    if (current) {
+        education.push(current);
     }
 
     return education;
-
 }
 
 module.exports = {
-    parseEducation
+    parseEducation,
 };

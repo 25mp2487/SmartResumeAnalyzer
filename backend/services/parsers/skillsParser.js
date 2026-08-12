@@ -1,141 +1,70 @@
-function parseSkills(lines, sections) {
+function getSectionRange(lines, sections, sectionName) {
+    const start = sections[sectionName];
 
-    let skills = {
-        programmingLanguages: [],
-        webTechnologies: [],
-        database: [],
-        coreConcepts: [],
-        otherSkills: []
-    };
-
-    const skillsStart = sections.skills;
-    const languagesStart = sections.languages;
-
-    if (
-        skillsStart === undefined ||
-        languagesStart === undefined
-    ) {
-        return skills;
+    if (start === undefined) {
+        return [];
     }
 
-    const skillLines = lines.slice(
-        skillsStart + 1,
-        languagesStart
+    const nextSections = Object.values(sections)
+        .filter((index) => index > start)
+        .sort((a, b) => a - b);
+
+    const end =
+        nextSections.length > 0
+            ? nextSections[0]
+            : lines.length;
+
+    return lines.slice(start + 1, end);
+}
+
+function parseSkills(lines, sections) {
+    const sectionLines = getSectionRange(
+        lines,
+        sections,
+        "skills"
     );
 
-    skillLines.forEach((line) => {
+    if (sectionLines.length === 0) {
+        return [];
+    }
 
-        const lower = line.toLowerCase();
+    const skills = [];
 
-        // Programming Languages
-        if (lower.includes("programming")) {
+    for (const line of sectionLines) {
+        let cleaned = line
+            .replace(/^[•▪◾◆►*-]\s*/, "")
+            .trim();
 
-            const values = line.split(":")[1];
+        if (!cleaned) continue;
 
-            if (values) {
-                skills.programmingLanguages = values
-                    .split(",")
-                    .map(item =>
-                        item
-                            .replace(/\(.*?\)/g, "")
-                            .trim()
-                    );
+        // Remove category prefixes
+        cleaned = cleaned.replace(
+            /^(technical skills|programming languages|tools|technologies|frameworks|databases)\s*[:\-]\s*/i,
+            ""
+        );
+
+        const parts = cleaned
+            .split(/[,|;•]/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+
+        for (const skill of parts) {
+            if (skill.length < 1) continue;
+            if (skill.length > 50) continue;
+
+            if (!skills.some(
+                (existing) =>
+                    existing.toLowerCase() ===
+                    skill.toLowerCase()
+            )) {
+                skills.push(skill);
             }
-
         }
-
-        // Web Technologies
-        else if (
-            lower.includes("web") ||
-            lower.includes("frontend") ||
-            lower.includes("backend")
-        ) {
-
-            const values = line.split(":")[1];
-
-            if (values) {
-                skills.webTechnologies = values
-                    .split(",")
-                    .map(item =>
-                        item
-                            .replace(/\(.*?\)/g, "")
-                            .trim()
-                    );
-            }
-
-        }
-
-        // Database
-        else if (
-            lower.includes("database") ||
-            lower.includes("dbms")
-        ) {
-
-            const values = line.split(":")[1];
-
-            if (values) {
-                skills.database = values
-                    .split(",")
-                    .map(item =>
-                        item
-                            .replace(/\(.*?\)/g, "")
-                            .trim()
-                    );
-            }
-
-        }
-
-        // Core Concepts
-        else if (
-            lower.includes("core") ||
-            lower.includes("concept")
-        ) {
-
-            const values = line.split(":")[1];
-
-            if (values) {
-                skills.coreConcepts = values
-                    .split(",")
-                    .map(item =>
-                        item
-                            .replace(/\(.*?\)/g, "")
-                            .trim()
-                    );
-            }
-
-        }
-
-        // Any other category
-        else {
-
-            const values = line.split(":");
-
-            if (values.length > 1) {
-
-                skills.otherSkills.push({
-
-                    category: values[0].trim(),
-
-                    values: values[1]
-                        .split(",")
-                        .map(item =>
-                            item
-                                .replace(/\(.*?\)/g, "")
-                                .trim()
-                        )
-
-                });
-
-            }
-
-        }
-
-    });
+    }
 
     return skills;
-
 }
 
 module.exports = {
-    parseSkills
+    parseSkills,
 };
